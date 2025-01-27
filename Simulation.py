@@ -83,7 +83,6 @@ class Simulation:
         distances = {}
         denom = 0
         for node in nodes:
-            #dist = self._distance(x, y, self.activities.loc[node].x, self.activities.loc[node].y)
             dist = self._distance(x, y, self.activities.get(node)["x"], self.activities.get(node)["y"])
             distances = { **distances, node : dist}
             denom += np.exp(-self.lambda_dist * dist)
