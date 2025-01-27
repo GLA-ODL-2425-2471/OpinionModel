@@ -83,7 +83,8 @@ class Simulation:
         distances = {}
         denom = 0
         for node in nodes:
-            dist = self._distance(x, y, self.activities.loc[node].x, self.activities.loc[node].y)
+            #dist = self._distance(x, y, self.activities.loc[node].x, self.activities.loc[node].y)
+            dist = self._distance(x, y, self.activities.get(node)["x"], self.activities.get(node)["y"])
             distances = { **distances, node : dist}
             denom += np.exp(-self.lambda_dist * dist)
 
@@ -103,11 +104,8 @@ class Simulation:
         
 
         # Create individuals, add them to the graph and supporting data structures
-        id_list=[]
-        type_list=[]
-        opinion_list=[]
-        x_list=[]
-        y_list=[]
+        #id_list=[];  type_list=[]; opinion_list=[]; x_list=[]; y_list=[]
+        
         for j in range(self.N_n):
             # 'Make' an Individual
             person = Individual(self.alpha_neg, self.alpha_pro)
@@ -116,28 +114,28 @@ class Simulation:
             person.id = self.graph.add_node(0)
             
             # Add the Individual's location to the N_l list
-            id_list.append(person.id)
-            type_list.append(person.type)
-            opinion_list.append(person.opinion)
+            #id_list.append(person.id)
+            #type_list.append(person.type)
+            #opinion_list.append(person.opinion)
             if (self.N_l_supplied):
                 # Add the Individual to the dictionary of individuals identified by their node_id
                 details = {"type" : person.type, "opinion" : person.opinion, "x" : self.N_l[j][0], "y" : self.N_l[j][1]}
-                x_list.append(self.N_l[j][0])
-                y_list.append(self.N_l[j][1])
+                #x_list.append(self.N_l[j][0])
+                #y_list.append(self.N_l[j][1])
             else:
                 self.N_l.append(tuple([person.x, person.y]))
                 # Add the Individual to the dictionary of individuals identified by their node_id
                 details = {"type" : person.type, "opinion" : person.opinion, "x" : person.x, "y" : person.y}
-                x_list.append(person.x)
-                y_list.append(person.y)
+                #x_list.append(person.x)
+                #y_list.append(person.y)
 
             self.individuals = {**self.individuals, person.id : details}
             #self.individuals = {**self.individuals, "node_id" : person.id, "type" : person.type, "opinion" : person.opinion, "x" : person.x, "y" : person.y}
         
-        individual_dict = {"id" : id_list, "type" : type_list, "opinion" : opinion_list, "x" : x_list, "y" : y_list}
-        print(individual_dict) 
-        individual_df = pd.DataFrame.from_dict(individual_dict)
-        print(individual_df)
+        #individual_dict = {"id" : id_list, "type" : type_list, "opinion" : opinion_list, "x" : x_list, "y" : y_list}
+        #print(individual_dict) 
+        #individual_df = pd.DataFrame.from_dict(individual_dict)
+        #print(individual_df)
 
         # Create the Activities, add them to the graph and supporting data structures
         #
@@ -172,8 +170,8 @@ class Simulation:
                 self.G_l.append(aList)
         
         # Convert the dictionaries to panda data frames and transpose them
-        self.individuals = (pd.DataFrame(self.individuals)).T
-        self.activities = (pd.DataFrame(self.activities)).T
+        #self.individuals = (pd.DataFrame(self.individuals)).T
+        #self.activities = (pd.DataFrame(self.activities)).T
 
 
         """
@@ -187,44 +185,20 @@ class Simulation:
         print(self.activities)
         print("----------------------")
         """
-
-        for person_id in list(self.individuals.index.values):
-        #for person_id in self.individuals.keys():
-            #person = self.individuals.loc[person_id]
-            #person = self.individuals.get(person_id)
+        # Loop over individuals
+        for person_id in self.individuals.keys():
+            person = self.individuals.get(person_id)
+            # Loop over activities
             for group in range(1,len(self.G_n)+1):
-                probability_list = self._compute_activity_probabilities(person.x, person.y, group)
-                #probability_list = self._compute_activity_probabilities(person["x"], person["y"], group)
-                #print("Group {} Probabilities {}".format(group, probability_list))
-                choice = np.random.uniform()
+                # get the probabilities of the individual selecting each activity in the group
+                probability_list = self._compute_activity_probabilities(person["x"], person["y"], group)
+                # randomly assign the individual to an activity according to probabilities
+                random_num = np.random.uniform()
                 run_sum = 0
                 cum_prob = [(i, (run_sum := run_sum + j)) for (i,j) in probability_list]
-                #cum_prob = ((run_sum := run_sum + j) for (i,j) in probability_list)
-                activity_id = [ i for (i, prob) in cum_prob if prob > choice]
-                #print("Cumulative probability {}. Random choice {}. Selected Activity {}.".format(cum_prob, choice, activity_id[0]))
-                #print("Individual {}. Selected Activity {}.".format(person_id, activity_id[0]))
-                #
-                # Now create edges between individuals and activities based on returned probabilities
-                #if self.graph.node_exists(int(person_id)):
-                #    print("Individual node exists {}. Group {}".format(person_id, self.graph.get_group(int(person_id))))
-                #if self.graph.node_exists(activity_id[0]):
-                #    print("Activity node exists {}. Group {}".format(activity_id[0], self.graph.get_group(activity_id[0])))
-                #print("Activity node esists {}.").format(self.graph.node_exists(activity_id))
-                self.graph.add_multipartite_edge(int(person_id), activity_id[0])
-
-        #for person in individual_df.iterrows():
-        #    if self.graph.node_exists(person["id"]):
-        #        print("Individual node exists {}. Group {}".format(person["id"], self.graph.get_group(person["id"])))
-
-        [ print(self.graph.node_exists(person)) for person in individual_df['id'] ]
-        #print(s)
-
-
-        #print(self.activities.loc[7,["x"]])
-        #print(self.activities.loc[7]["x"])
-        #
-        # Compute activity probability for each individual
-        # use that to create edges between individuals and activities
+                activity_id = [ i for (i, prob) in cum_prob if prob > random_num]
+                # add the edge between individual and first activity wher cumulative probability > random_num
+                self.graph.add_multipartite_edge(person_id, activity_id[0])
 
         return(self.graph)
 
@@ -288,3 +262,4 @@ print(s)
 settings = Settings(100, N_l=[(0,0),(0.2,0.2),(0.4,0.4),(0.6,0.6),(0.8,0.8)], N_n=5)
 s = Simulation(settings)
 print(s)
+print(s.graph.get_edges())
