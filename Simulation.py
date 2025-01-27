@@ -104,8 +104,6 @@ class Simulation:
         
 
         # Create individuals, add them to the graph and supporting data structures
-        #id_list=[];  type_list=[]; opinion_list=[]; x_list=[]; y_list=[]
-        
         for j in range(self.N_n):
             # 'Make' an Individual
             person = Individual(self.alpha_neg, self.alpha_pro)
@@ -114,23 +112,16 @@ class Simulation:
             person.id = self.graph.add_node(0)
             
             # Add the Individual's location to the N_l list
-            #id_list.append(person.id)
-            #type_list.append(person.type)
-            #opinion_list.append(person.opinion)
             if (self.N_l_supplied):
                 # Add the Individual to the dictionary of individuals identified by their node_id
                 details = {"type" : person.type, "opinion" : person.opinion, "x" : self.N_l[j][0], "y" : self.N_l[j][1]}
-                #x_list.append(self.N_l[j][0])
-                #y_list.append(self.N_l[j][1])
             else:
                 self.N_l.append(tuple([person.x, person.y]))
                 # Add the Individual to the dictionary of individuals identified by their node_id
                 details = {"type" : person.type, "opinion" : person.opinion, "x" : person.x, "y" : person.y}
-                #x_list.append(person.x)
-                #y_list.append(person.y)
+
 
             self.individuals = {**self.individuals, person.id : details}
-            #self.individuals = {**self.individuals, "node_id" : person.id, "type" : person.type, "opinion" : person.opinion, "x" : person.x, "y" : person.y}
         
         #individual_dict = {"id" : id_list, "type" : type_list, "opinion" : opinion_list, "x" : x_list, "y" : y_list}
         #print(individual_dict) 
@@ -140,7 +131,6 @@ class Simulation:
         # Create the Activities, add them to the graph and supporting data structures
         #
         # Initialise the activity locations if G_l has been specified as None
-
         for i in range(len(self.G_n)):
 
             aList = []
@@ -164,7 +154,6 @@ class Simulation:
                     details = {"period" : activity.period, "x" : activity.x, "y" : activity.y}
 
                 self.activities = {**self.activities, activity.id : details}
-                #self.activities = {**self.activities, "node_id" : activity.id, "period" : activity.period, "x" : activity.x, "y" : activity.y}
 
             if (not self.G_l_supplied):
                 self.G_l.append(aList)
@@ -206,6 +195,8 @@ class Simulation:
         pass
 
     def _perform_opinion_activity(self, activity):
+        
+        
         pass
 
     def run(self):
